@@ -6,8 +6,10 @@ from torchvision import transforms
 import numpy as np
 import cv2
 
-from vit_rollout import VITAttentionRollout
-from vit_grad_rollout import VITAttentionGradRollout
+
+from .vit_rollout import VITAttentionRollout
+from .vit_grad_rollout import VITAttentionGradRollout
+
 
 def get_args():
     parser = argparse.ArgumentParser()

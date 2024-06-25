@@ -33,19 +33,28 @@ def get_args():
 
     return args
 
+
 def show_mask_on_image(img, mask):
     img = np.float32(img) / 255
-    heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
+    heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_SUMMER)
     heatmap = np.float32(heatmap) / 255
     cam = heatmap + np.float32(img)
     cam = cam / np.max(cam)
     return np.uint8(255 * cam)
 
+
+def disable_fused_attn(model):
+    for block in model.blocks:
+        block.attn.fused_attn = False
+
+
 if __name__ == '__main__':
     args = get_args()
-    model = torch.hub.load('facebookresearch/deit:main', 
+    model = torch.hub.load('facebookresearch/deit:main',
         'deit_tiny_patch16_224', pretrained=True)
     model.eval()
+
+    disable_fused_attn(model)
 
     if args.use_cuda:
         model = model.cuda()
@@ -63,7 +72,7 @@ if __name__ == '__main__':
 
     if args.category_index is None:
         print("Doing Attention Rollout")
-        attention_rollout = VITAttentionRollout(model, head_fusion=args.head_fusion, 
+        attention_rollout = VITAttentionRollout(model, head_fusion=args.head_fusion,
             discard_ratio=args.discard_ratio)
         mask = attention_rollout(input_tensor)
         name = "attention_rollout_{:.3f}_{}.png".format(args.discard_ratio, args.head_fusion)
